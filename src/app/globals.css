@@ -1,0 +1,196 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Tokens: light + auto dark via prefers-color-scheme */
+@layer base {
+  :root {
+    /* Light */
+    --background: 0 0% 100%;
+    --foreground: 222 47% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 10%;
+    --border: 220 16% 88%;
+    --muted: 220 20% 97%;
+    --muted-foreground: 222 12% 38%;
+
+    /* CADAK Electric Blue + Purple */
+    --brand: 189 100% 50%;
+    --brand-foreground: 0 0% 100%;
+    --brand-ring: 189 100% 45%;
+    --accent: 271 83% 61%;
+
+    --success: 142 70% 45%;
+    --warning: 34 100% 52%;
+    --danger: 0 84% 58%;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --background: 240 14% 7%;
+      --foreground: 0 0% 98%;
+
+      --card: 240 13% 12%;
+      --card-foreground: 0 0% 98%;
+      --border: 240 5% 26%;
+      --muted: 240 12% 14%;
+      --muted-foreground: 240 5% 80%;
+
+      --brand: 189 100% 55%;
+      --brand-foreground: 0 0% 100%;
+      --brand-ring: 189 100% 50%;
+      --accent: 271 83% 62%;
+    }
+  }
+
+  html, body {
+    height: 100%;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+}
+
+@layer utilities {
+  /* Floating orb/aurora movement */
+  @keyframes cadak-aurora {
+    0%   { transform: translate3d(0, 0, 0) scale(1) }
+    50%  { transform: translate3d(20px, -12px, 0) scale(1.05) }
+    100% { transform: translate3d(-12px, 10px, 0) scale(1) }
+  }
+  .animate-cadak-aurora { animation: cadak-aurora 14s ease-in-out infinite alternate; }
+
+  /* Soft float */
+  @keyframes cadak-float {
+    0%, 100% { transform: translateY(0) }
+    50% { transform: translateY(18px) }
+  }
+  .animate-cadak-float { animation: cadak-float 10s ease-in-out infinite; }
+
+  /* Marquee */
+  @keyframes cadak-slide { 
+    0% { transform: translateX(0) } 
+    100% { transform: translateX(-50%) } 
+  }
+  .animate-cadak-slide { animation: cadak-slide 22s linear infinite; }
+
+  /* Confetti burst */
+  @keyframes cadak-confetti {
+    0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(-120px) rotate(360deg); opacity: 0; }
+  }
+  .cadak-confetti-piece {
+    position: absolute;
+    width: 6px; height: 10px; border-radius: 2px;
+    animation: cadak-confetti 700ms ease-out forwards;
+  }
+
+  /* Diagonal moving light beam */
+  @keyframes cadak-beam {
+    0%   { transform: translateX(-20%) rotate(-12deg) }
+    100% { transform: translateX(0%) rotate(-12deg) }
+  }
+  .cadak-beam {
+    background-image: linear-gradient(90deg, transparent 0%, hsl(var(--brand)/0.18) 40%, hsl(var(--accent)/0.18) 60%, transparent 100%);
+    animation: cadak-beam 9s linear infinite;
+  }
+
+  /* Tiny twinkles */
+  @keyframes cadak-twinkle {
+    0%, 100% { opacity: .2; transform: scale(1)}
+    50% { opacity: .85; transform: scale(1.15) }
+  }
+  .cadak-glint { animation: cadak-twinkle 2.4s ease-in-out infinite; }
+}
+
+/* Components */
+/* Note: Avoid arbitrary utilities inside @apply (e.g. bg-[...], text-[...], border-[...]) */
+@layer components {
+  .container {
+    @apply mx-auto max-w-6xl px-4;
+  }
+
+  .card {
+    @apply rounded-lg border shadow-soft;
+    background-color: hsl(var(--card));
+    color: hsl(var(--card-foreground));
+    border-color: hsl(var(--border));
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-semibold transition duration-200;
+  }
+  .btn-primary {
+    color: hsl(var(--brand-foreground));
+    background-image: linear-gradient(90deg, hsl(var(--brand)) 0%, hsl(var(--accent)) 100%);
+    box-shadow: 0 6px 20px hsl(var(--brand)/0.25);
+  }
+  .btn-primary:hover {
+    filter: brightness(1.06);
+    box-shadow: 0 6px 24px hsl(var(--brand)/0.35);
+  }
+
+  .btn-ghost {
+    @apply rounded-md;
+    background: transparent;
+    color: hsl(var(--foreground));
+  }
+  .btn-ghost:hover {
+    background: hsl(var(--muted) / 0.6);
+  }
+
+  .input {
+    @apply w-full rounded-md border px-3 py-2 text-sm outline-none;
+    background-color: hsl(var(--card));
+    color: hsl(var(--foreground));
+    border-color: hsl(var(--border));
+  }
+  .input:focus {
+    box-shadow: 0 0 0 3px hsl(var(--brand-ring) / 0.5);
+  }
+
+  .badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+    background-color: hsl(var(--muted));
+    color: hsl(var(--muted-foreground));
+  }
+
+  .hero {
+    background:
+      radial-gradient(1000px 500px at 10% -10%, hsl(var(--brand) / 0.30), transparent 60%),
+      radial-gradient(900px 450px at 90% -20%, hsl(var(--accent) / 0.30), transparent 60%);
+  }
+
+  .glass {
+    backdrop-filter: saturate(1.25) blur(10px);
+    background: linear-gradient(180deg, hsl(var(--card) / 0.65), hsl(var(--card) / 0.35));
+    border-color: hsl(var(--border));
+  }
+}
+
+@layer utilities {
+  /* Floating orb animation */
+  @keyframes cadak-float {
+    0%, 100% { transform: translateY(0) }
+    50% { transform: translateY(18px) }
+  }
+  .animate-cadak-float { animation: cadak-float 10s ease-in-out infinite; }
+
+  /* Marquee slide */
+  @keyframes cadak-slide {
+    0% { transform: translateX(0) }
+    100% { transform: translateX(-50%) }
+  }
+  .animate-cadak-slide { animation: cadak-slide 22s linear infinite; }
+
+  /* Confetti burst */
+  @keyframes cadak-confetti {
+    0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(-120px) rotate(360deg); opacity: 0; }
+  }
+  .cadak-confetti-piece {
+    position: absolute;
+    width: 6px; height: 10px; border-radius: 2px;
+    animation: cadak-confetti 700ms ease-out forwards;
+  }
+}
