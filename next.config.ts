@@ -1,3 +1,15 @@
+import { NextConfig } from 'next';
+
+const nextConfig: NextConfig = {
+  turbopack: {
+    root: './',
+  },
+  images: {
+    qualities: [75, 85],
+  },
+};
+
+export default nextConfig;
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {

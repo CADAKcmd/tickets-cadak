@@ -1,5 +1,3 @@
-'use client';
-
 import { initializeApp, getApps, getApp, type FirebaseOptions } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
@@ -14,13 +12,17 @@ const firebaseConfig: FirebaseOptions = {
 
 const missing = Object.entries(firebaseConfig).filter(([, v]) => !v);
 if (missing.length) {
-  console.error('Missing Firebase env vars:', missing.map(([k]) => k).join(', '));
-  throw new Error('Firebase env not configured. Check .env.local and restart dev server.');
+  console.warn('Missing Firebase env vars:', missing.map(([k]) => k).join(', '));
 }
 
-const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+let app: ReturnType<typeof initializeApp> | undefined;
+if (missing.length === 0) {
+  app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+} else {
+  app = undefined;
+}
 
 // EXPORTS you should import elsewhere
-export const auth = getAuth(app);
+export const auth = app ? getAuth(app) : null;
 export const googleProvider = new GoogleAuthProvider();
-export const db = getFirestore(app);
+export const db = app ? getFirestore(app) : null;
