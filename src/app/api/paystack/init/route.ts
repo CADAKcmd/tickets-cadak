@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { db } from '@/lib/firebase';
+import { collection, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 export async function POST(req: NextRequest) {
   try {
@@ -32,6 +34,23 @@ export async function POST(req: NextRequest) {
     const ref = `cadak_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     const origin = new URL(req.url).origin;
     const callback_url = `${origin}/paystack/callback`;
+
+    // Persist a pending order snapshot server-side so verify can reconcile and issue tickets.
+    try {
+      const orderRef = doc(collection(db, 'orders'));
+      await setDoc(orderRef, {
+        reference: ref,
+        buyerEmail,
+        items,
+        currency,
+        totalMinor,
+        status: 'pending',
+        createdAt: serverTimestamp(),
+      });
+    } catch (err) {
+      // log but continue — we still try to init the transaction so the payment can complete
+      console.warn('Failed to persist pending order before Paystack init', err);
+    }
 
     // Paystack amounts must be in kobo – our totalMinor is already minor for NGN (kobo)
     const initRes = await fetch('https://api.paystack.co/transaction/initialize', {

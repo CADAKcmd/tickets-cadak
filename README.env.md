@@ -44,6 +44,20 @@ NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=unsigned-preset
 3. Add each variable listed above. For `PAYSTACK_SECRET_KEY` set it for `Production` and `Preview` but mark it as a secret (server-only) — do not prefix it with `NEXT_PUBLIC_`.
 4. After saving, trigger a redeploy (push to `main` or click "Redeploy" in Vercel).
 
+### Optional: helper script
+
+There's a PowerShell helper at `scripts/setup-vercel-env.ps1` that will read a local `.env.local` file and interactively run `vercel env add` for each required variable. Usage:
+
+PowerShell (from project root):
+
+```powershell
+./scripts/setup-vercel-env.ps1
+# or to just print commands:
+./scripts/setup-vercel-env.ps1 -PrintOnly
+```
+
+The script requires the Vercel CLI (`npm i -g vercel`) and that you are logged in (`vercel login`). It will still work even if `.env.local` is missing (it will prompt).
+
 ## Verify after deploy
 
 - Check the Vercel deployment logs; you should not see the console warning `Missing Firebase env vars`.
