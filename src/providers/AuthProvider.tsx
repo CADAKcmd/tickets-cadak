@@ -28,6 +28,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!auth) {
+      // Firebase not configured (e.g., missing env vars). Avoid throwing during SSR/runtime.
+      setUser(null);
+      setLoading(false);
+      return;
+    }
+
     const unsub = onAuthStateChanged(auth, (u) => {
       setUser(u ?? null);
       setLoading(false);
@@ -39,16 +46,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user,
     loading,
     async signInEmail(email, password) {
+      if (!auth) throw new Error('Authentication not configured');
       await signInWithEmailAndPassword(auth, email, password);
     },
     async signUpEmail(email, password, name) {
+      if (!auth) throw new Error('Authentication not configured');
       const cred = await createUserWithEmailAndPassword(auth, email, password);
       if (name) await updateProfile(cred.user, { displayName: name });
     },
     async signInGoogle() {
+      if (!auth) throw new Error('Authentication not configured');
       await signInWithPopup(auth, googleProvider);
     },
     async signOut() {
+      if (!auth) throw new Error('Authentication not configured');
       await fbSignOut(auth);
     },
   }), [user, loading]);
