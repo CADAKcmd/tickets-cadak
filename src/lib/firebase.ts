@@ -17,25 +17,27 @@ const firebaseConfig: FirebaseOptions = {
 };
 
 const missing = Object.entries(firebaseConfig).filter(([, v]) => !v);
-const missingKeys = missing.map(([k]) => k);
-if (missingKeys.length) {
-  console.warn('Missing Firebase env vars:', missingKeys.join(', '));
+export const missingFirebaseKeys = missing.map(([k]) => k);
+
+// Only warn in the browser to avoid noisy server logs
+if (typeof window !== 'undefined' && missingFirebaseKeys.length) {
+  console.warn('Missing Firebase env vars:', missingFirebaseKeys.join(', '));
 }
 
+const isBrowser = typeof window !== 'undefined';
+
 let app: FirebaseApp | null = null;
-if (missingKeys.length === 0) {
+if (isBrowser && missingFirebaseKeys.length === 0) {
   app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 }
 
-export const isFirebaseConfigured = app !== null;
-export const missingFirebaseKeys = missingKeys;
+// Public flags (client-only true/false)
+export const isFirebaseConfigured = !!(isBrowser && app);
 
-// Keep `auth` and `db` as `any` for backward compatibility across the codebase
-// (many call sites assume a non-null value). Prefer using `getAuthOrThrow`
-// and `getDbOrThrow` in new code.
-export const auth = (app ? getAuth(app) : null) as any;
-export const db = (app ? getFirestore(app) : null) as any;
-export const googleProvider = new GoogleAuthProvider();
+// Export nullable clients; use the *OrThrow helpers where required
+export const auth = (isBrowser && app ? getAuth(app) : null) as any;       // keep as any to avoid TS ripples
+export const db = (isBrowser && app ? getFirestore(app) : null) as any;
+export const googleProvider = isBrowser ? new GoogleAuthProvider() : null;
 
 /**
  * Throw a helpful error if Firebase isn't configured.
@@ -44,19 +46,19 @@ export const googleProvider = new GoogleAuthProvider();
 export function getAuthOrThrow(): Auth {
   if (!auth) {
     throw new Error(
-      `Firebase Auth is not configured. Missing envs: ${missingKeys.join(', ')}. ` +
+      `Firebase Auth is not configured. Missing envs: ${missingFirebaseKeys.join(', ') || 'unknown'}. ` +
         'Set the NEXT_PUBLIC_FIREBASE_* env vars and redeploy.'
     );
   }
-  return auth;
+  return auth as Auth;
 }
 
 export function getDbOrThrow(): Firestore {
   if (!db) {
     throw new Error(
-      `Firestore is not configured. Missing envs: ${missingKeys.join(', ')}. ` +
+      `Firestore is not configured. Missing envs: ${missingFirebaseKeys.join(', ') || 'unknown'}. ` +
         'Set the NEXT_PUBLIC_FIREBASE_* env vars and redeploy.'
     );
   }
-  return db;
+  return db as Firestore;
 }
