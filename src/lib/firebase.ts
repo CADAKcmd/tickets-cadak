@@ -23,6 +23,6 @@ if (missing.length === 0) {
 }
 
 // EXPORTS you should import elsewhere
-export const auth = app ? getAuth(app) : null;
+export const auth = (app ? getAuth(app) : null) as any;
 export const googleProvider = new GoogleAuthProvider();
-export const db = app ? getFirestore(app) : null;
+export const db = (app ? getFirestore(app) : null) as any;

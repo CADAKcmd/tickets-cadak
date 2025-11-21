@@ -48,6 +48,10 @@ export default function ResetPasswordPage() {
           setError('Invalid password reset link.');
           return;
         }
+        if (!auth) {
+          setError('Authentication is not configured on the server.');
+          return;
+        }
         const mail = await verifyPasswordResetCode(auth, oobCode);
         setEmail(mail);
       } catch (e: any) {
@@ -83,6 +87,10 @@ export default function ResetPasswordPage() {
         return;
       }
       setSaving(true);
+      if (!auth) {
+        setError('Authentication is not configured on the server.');
+        return;
+      }
       await confirmPasswordReset(auth, oobCode, pw);
       toast({ message: 'Password updated. You can log in now.', variant: 'success' });
       router.push('/auth');

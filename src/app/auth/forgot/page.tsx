@@ -62,6 +62,13 @@ export default function ForgotPasswordPage() {
 
       setSending(true);
 
+      if (!auth) {
+        const m = 'Authentication is not configured on the server. Try again later.';
+        setErr(m);
+        toast({ message: m, variant: 'error' });
+        return;
+      }
+
       const methods = await fetchSignInMethodsForEmail(auth, email);
       const exists = methods && methods.length > 0;
 

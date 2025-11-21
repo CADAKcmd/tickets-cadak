@@ -100,6 +100,7 @@ export default function AuthPage() {
 
   const emailExists = async (addr: string) => {
     try {
+      if (!auth) return false;
       const methods = await fetchSignInMethodsForEmail(auth, addr);
       return (methods && methods.length > 0) || false;
     } catch {
@@ -139,7 +140,7 @@ export default function AuthPage() {
 
         await signInEmail(email, password);
 
-        if (auth.currentUser && !auth.currentUser.emailVerified) {
+        if (auth?.currentUser && !auth.currentUser.emailVerified) {
           setAwaitingVerification(true);
           const msg = `We sent a verification email to ${auth.currentUser.email}. Verify and click "I've verified".`;
           setErr(msg);
@@ -163,7 +164,7 @@ export default function AuthPage() {
 
         await signUpEmail(email, password, name);
 
-        if (auth.currentUser && !auth.currentUser.emailVerified) {
+        if (auth?.currentUser && !auth.currentUser.emailVerified) {
           try {
             setSendingVerify(true);
             await sendEmailVerification(auth.currentUser);
@@ -189,7 +190,7 @@ export default function AuthPage() {
 
   const resendVerification = async () => {
     try {
-      if (!auth.currentUser) {
+      if (!auth?.currentUser) {
         setErr('Please log in again to resend verification.');
         return;
       }
@@ -208,12 +209,12 @@ export default function AuthPage() {
 
   const iVerified = async () => {
     try {
-      if (!auth.currentUser) {
+      if (!auth?.currentUser) {
         setErr('Please log in to continue.');
         return;
       }
       await auth.currentUser.reload();
-      if (auth.currentUser.emailVerified) {
+      if (auth.currentUser?.emailVerified) {
         setAwaitingVerification(false);
         setErr(null);
         toast({ message: 'Email verified. Welcome to CADAK!', variant: 'success' });
