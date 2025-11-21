@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { listPublishedEventsFS } from '@/lib/firestore';
 import type { Event } from '@/lib/types';
 import EventCard from '@/components/EventCard';
@@ -18,7 +18,6 @@ function isCategory(v: string | null): v is Category {
 
 export default function ExplorePage() {
   const router = useRouter();
-  const sp = useSearchParams();
 
   // raw data
   const [allEvents, setAllEvents] = useState<Event[]>([]);
@@ -34,16 +33,17 @@ export default function ExplorePage() {
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => {
     if (hydrated) return;
-    const q_ = sp.get('q') || '';
-    const city_ = sp.get('city') || '';
-    const cat_ = sp.get('category');
-    const sort_ = sp.get('sort');
+    const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
+    const q_ = params.get('q') || '';
+    const city_ = params.get('city') || '';
+    const cat_ = params.get('category');
+    const sort_ = params.get('sort');
     setQ(q_);
     setCity(city_);
     setCategory(isCategory(cat_) ? cat_ : 'all');
     setSort(sort_ === 'new' ? 'new' : 'soon');
     setHydrated(true);
-  }, [sp, hydrated]);
+  }, [hydrated]);
 
   // keep URL in sync with filters (no history spam)
   useEffect(() => {

@@ -1,15 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { createOrderAndIssueTicketsFS } from '@/lib/firestore';
 import { useAuth } from '@/providers/AuthProvider';
 import { useCart } from '@/store/cart';
 
 export default function PaystackCallbackPage() {
-  const sp = useSearchParams();
   const router = useRouter();
-  const reference = sp.get('reference') || '';
+  const reference = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('reference') || '' : '';
   const { user } = useAuth();
   const { clear } = useCart();
 

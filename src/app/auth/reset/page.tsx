@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { auth } from '@/lib/firebase';
 import {
   confirmPasswordReset,
@@ -12,8 +12,7 @@ import { useToast } from '@/components/ui/Toast';
 import { X } from 'lucide-react';
 
 export default function ResetPasswordPage() {
-  const sp = useSearchParams();
-  const oobCode = sp.get('oobCode') || '';
+  const oobCode = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('oobCode') || '' : '';
   const router = useRouter();
   const toast = useToast();
 

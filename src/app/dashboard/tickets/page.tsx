@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
 import { listBuyerTicketsFS, deleteTicketFS } from '@/lib/firestore';
 import QRCode from 'react-qr-code';
-import { useSearchParams } from 'next/navigation';
 
 function downloadSvg(svg: SVGSVGElement, name: string) {
   const xml = new XMLSerializer().serializeToString(svg);
@@ -34,15 +33,12 @@ type Ticket = {
 
 export default function TicketsPage() {
   const { user } = useAuth();
-  const sp = useSearchParams();
+  const [params] = useState(() => (typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams()));
 
-  const justBought = sp.get('justBought') === '1';
-  const newTicketParam = sp.get('tickets') || '';
-  const newTicketIds = useMemo(
-    () => new Set(newTicketParam ? newTicketParam.split(',') : []),
-    [newTicketParam]
-  );
-  const errorMsg = sp.get('error');
+  const justBought = params.get('justBought') === '1';
+  const newTicketParam = params.get('tickets') || '';
+  const newTicketIds = useMemo(() => new Set(newTicketParam ? newTicketParam.split(',') : []), [newTicketParam]);
+  const errorMsg = params.get('error');
 
   const [loading, setLoading] = useState(true);
   const [tickets, setTickets] = useState<Ticket[]>([]);

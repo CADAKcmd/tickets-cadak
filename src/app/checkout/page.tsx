@@ -23,6 +23,7 @@ export default function CheckoutPage() {
   const total = useMemo(() => totalMinor(), [cartItems, totalMinor]);
 
   const clearPendingSnapshot = () => {
+    if (typeof window === 'undefined') return;
     sessionStorage.removeItem('cadak_checkout_items');
     sessionStorage.removeItem('cadak_checkout_email');
   };
@@ -70,7 +71,11 @@ export default function CheckoutPage() {
     }
   };
 
-  const hasPendingSnapshot = !!sessionStorage.getItem('cadak_checkout_items');
+  const [hasPendingSnapshot, setHasPendingSnapshot] = useState(false);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    setHasPendingSnapshot(!!sessionStorage.getItem('cadak_checkout_items'));
+  }, []);
 
   return (
     <div className="grid gap-6 md:grid-cols-3">

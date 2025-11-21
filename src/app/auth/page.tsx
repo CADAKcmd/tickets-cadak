@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/providers/AuthProvider';
 import { auth } from '@/lib/firebase';
 import {
@@ -38,7 +38,9 @@ function mapAuthError(e: any, online: boolean) {
 }
 
 export default function AuthPage() {
-  const sp = useSearchParams();
+  const [sp, setSp] = useState(() =>
+    typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams()
+  );
   const next = sp.get('next') || '/dashboard';
   const router = useRouter();
   const { signInEmail, signUpEmail, signInGoogle, loading, user } = useAuth();
@@ -73,21 +75,18 @@ export default function AuthPage() {
 
   // Respect query: /auth?mode=signup or mode=signin
   useEffect(() => {
-    const m = sp.get('mode');
+    const m = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('mode') : null;
     if (m === 'signup' || m === 'signin') setMode(m);
-  }, [sp]);
+  }, []);
 
   // Update URL when switching mode (keep next param)
-  const setModeParam = useCallback(
-    (m: 'signin' | 'signup') => {
-      setMode(m);
-      const p = new URLSearchParams(sp.toString());
-      p.set('mode', m);
-      if (next) p.set('next', next);
-      router.replace(`/auth?${p.toString()}`, { scroll: false });
-    },
-    [sp, next, router]
-  );
+  const setModeParam = useCallback((m: 'signin' | 'signup') => {
+    setMode(m);
+    const p = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
+    p.set('mode', m);
+    if (next) p.set('next', next);
+    router.replace(`/auth?${p.toString()}`, { scroll: false });
+  }, [next, router]);
 
   // Redirect only when verified
   useEffect(() => {

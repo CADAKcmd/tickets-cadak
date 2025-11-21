@@ -8,12 +8,12 @@ export type Event = {
   venue: string;
   city?: string;
   country?: string;
-  category: 'music' | 'sport' | 'conference' | 'festival' | 'theatre' | 'comedy' ;
+  category: 'music' | 'sport' | 'conference' | 'festival' | 'theatre' | 'comedy';
   status: 'draft' | 'published';
   coverImage?: string;
   currency: string;
   ticketTypes: TicketType[];
-  minPriceMinor?: number; // NEW
+  minPriceMinor?: number;
 };
 
 export type TicketType = {
@@ -24,12 +24,31 @@ export type TicketType = {
   quantityTotal: number;
   quantitySold: number;
   maxPerOrder?: number;
+  tier?: string;
+  perks?: string[];
+  badgeColor?: string;
+  saleStartAt?: string;
+  saleEndAt?: string;
+  isHidden?: boolean;
+};
 
-  // NEW (tiers)
-  tier?: string;             // 'Regular' | 'VIP' | 'VVIP' | 'Premium' | etc.
-  perks?: string[];          // e.g., ['Fast lane', 'Backstage', 'Free drink']
-  badgeColor?: string;       // e.g., '#8B5CF6'
-  saleStartAt?: string;      // ISO string
-  saleEndAt?: string;        // ISO string
-  isHidden?: boolean;        // hide tier (coming soon)
+export type Ticket = {
+  id: string;
+  eventId: string;
+  eventTitle?: string;
+  ticketTypeName?: string;
+  buyerEmail?: string;
+  status?: 'unused' | 'checked_in' | 'used' | 'revoked';
+  qrPayload?: string;
+  issuedAt?: string | any;
+};
+
+export type CartItem = {
+  eventId: string;
+  eventTitle?: string;
+  ticketTypeId: string;
+  name: string;
+  unitPriceMinor: number;
+  quantity: number;
+  currency: string;
 };
