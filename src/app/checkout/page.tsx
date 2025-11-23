@@ -50,7 +50,7 @@ export default function CheckoutPage() {
       const res = await fetch('/api/paystack/init', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items, buyerEmail }),
+        body: JSON.stringify({ items, buyerEmail, buyerId: user?.uid }),
       });
 
       // Handle HTML error pages gracefully (404/500)
@@ -153,7 +153,7 @@ export default function CheckoutPage() {
           <button
             disabled={items.length === 0 || submitting}
             onClick={payNow}
-            className="btn btn-primary mt-4 w-full disabled:opacity-60 disabled:cursor-not-allowed"
+            className="btn btn-primary btn-block mt-4 disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {submitting ? 'Redirecting…' : 'Pay with Paystack'}
           </button>

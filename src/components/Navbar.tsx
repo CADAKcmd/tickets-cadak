@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useAuth } from '@/providers/AuthProvider';
 import { useEffect, useRef, useState } from 'react';
+import { useCart } from '@/store/cart';
 import { getProfileFS } from '@/lib/firestore';
 import { usePathname } from 'next/navigation';
 import { UserRound } from 'lucide-react';
@@ -13,6 +14,8 @@ export default function Navbar() {
   if (pathname?.startsWith('/auth')) return null;
 
   const { user, signOut } = useAuth();
+  const cartCount = useCart((s) => s.count());
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [open, setOpen] = useState(false);
   const [avatar, setAvatar] = useState<string | null>(null);
 
@@ -108,24 +111,46 @@ export default function Navbar() {
         </Link>
 
         <nav className="flex items-center gap-6 text-sm">
-          <Link href="/explore" className={linkCls}>Explore</Link>
-          <Link href="/about" className={linkCls}>About</Link>
-          <Link href="/contact" className={linkCls}>Contact</Link>
-          <Link href="/dashboard" className={linkCls}>Dashboard</Link>
+          {/* Desktop links */}
+          <div className="hidden md:flex items-center gap-6">
+            <Link href="/explore" className={linkCls}>Explore</Link>
+            <Link href="/about" className={linkCls}>About</Link>
+            <Link href="/contact" className={linkCls}>Contact</Link>
+            <Link href="/checkout" className={`${linkCls} relative flex items-center`}> 
+              Checkout
+              {cartCount > 0 ? (
+                <span className="ml-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-[hsl(var(--brand))] text-xs font-semibold text-white">
+                  {cartCount}
+                </span>
+              ) : null}
+            </Link>
+            <Link href="/dashboard" className={linkCls}>Dashboard</Link>
+          </div>
+
+          {/* Mobile menu button */}
+          <button
+            className="md:hidden p-2 rounded-md text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))]"
+            aria-label="Open menu"
+            onClick={() => setMobileOpen((v) => !v)}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 6h18M3 12h18M3 18h18" />
+            </svg>
+          </button>
 
           {!user ? (
             <Link
               href="/auth?next=/dashboard"
               target="_blank"
               rel="noopener noreferrer"
-              className="btn btn-primary"
+              className="btn btn-primary ml-2"
             >
               Sign in
             </Link>
           ) : (
             <div ref={anchorRef} className="relative">
               <button
-                className="btn btn-ghost p-0"
+                className="btn btn-ghost p-0 ml-2"
                 aria-haspopup="menu"
                 aria-expanded={open}
                 onClick={() => {
@@ -170,6 +195,20 @@ export default function Navbar() {
             </div>
           )}
         </nav>
+        {/* Mobile dropdown */}
+        {mobileOpen && (
+          <div className="md:hidden absolute left-0 right-0 top-14 z-50 bg-[hsl(var(--card))] border-t border-[hsl(var(--border))]">
+            <div className="container py-3 flex flex-col gap-2">
+              <Link href="/explore" className={linkCls} onClick={() => setMobileOpen(false)}>Explore</Link>
+              <Link href="/about" className={linkCls} onClick={() => setMobileOpen(false)}>About</Link>
+              <Link href="/contact" className={linkCls} onClick={() => setMobileOpen(false)}>Contact</Link>
+              <Link href="/checkout" className={linkCls} onClick={() => setMobileOpen(false)}>
+                Checkout {cartCount > 0 ? (<span className="ml-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-[hsl(var(--brand))] text-xs font-semibold text-white">{cartCount}</span>) : null}
+              </Link>
+              <Link href="/dashboard" className={linkCls} onClick={() => setMobileOpen(false)}>Dashboard</Link>
+            </div>
+          </div>
+        )}
       </div>
     </header>
   );

@@ -6,6 +6,7 @@ import { getEventWithTicketsFS } from '@/lib/firestore';
 import { Event, TicketType } from '@/lib/types';
 import { useCart } from '@/store/cart';
 import { formatMoney } from '@/components/Currency';
+import { useToast } from '@/components/ui/Toast';
 
 function withinSaleWindow(tt: TicketType) {
   const now = Date.now();
@@ -21,6 +22,7 @@ export default function EventDetailPage() {
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
   const add = useCart((s) => s.add);
+  const toast = useToast();
 
   // qty map per ticket type
   const [qty, setQty] = useState<Record<string, number>>({});
@@ -63,6 +65,7 @@ export default function EventDetailPage() {
       currency: tt.currency,
     });
     setQty((prev) => ({ ...prev, [tt.id]: 0 }));
+    toast({ message: `Added ${q} × ${tt.name} to checkout`, variant: 'success' });
   };
 
   return (

@@ -6,6 +6,7 @@ import { getEventWithTicketsFS } from '@/lib/firestore';
 import { Event, TicketType } from '@/lib/types';
 import { useCart } from '@/store/cart';
 import { formatMoney } from '@/components/Currency';
+import { useToast } from '@/components/ui/Toast';
 
 export default function EventDetailPage() {
   const params = useParams<{ id: string }>();
@@ -14,6 +15,7 @@ export default function EventDetailPage() {
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
   const add = useCart((s) => s.add);
+  const toast = useToast();
 
   useEffect(() => {
     (async () => {
@@ -41,6 +43,7 @@ export default function EventDetailPage() {
       quantity: 1,
       currency: tt.currency,
     });
+    toast({ message: `Added 1 × ${tt.name} to checkout`, variant: 'success' });
   };
 
   return (

@@ -4,7 +4,7 @@ import { collection, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 export async function POST(req: NextRequest) {
   try {
-    const { items, buyerEmail } = await req.json();
+    const { items, buyerEmail, buyerId } = await req.json();
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: 'Cart is empty' }, { status: 400 });
@@ -41,6 +41,7 @@ export async function POST(req: NextRequest) {
       await setDoc(orderRef, {
         reference: ref,
         buyerEmail,
+        buyerId: buyerId ?? null,
         items,
         currency,
         totalMinor,
@@ -67,6 +68,7 @@ export async function POST(req: NextRequest) {
         callback_url,
         metadata: {
           cartItems: items.length, // informational
+          buyerId: buyerId ?? null,
         },
       }),
     });
