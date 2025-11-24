@@ -1,7 +1,8 @@
 'use client';
 
 import Image, { type StaticImageData } from 'next/image';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import ImageFade from '@/components/ui/ImageFade';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, ChevronRight, Search, MapPin } from 'lucide-react';
 
@@ -31,6 +32,8 @@ export default function BannerCarousel({
 
   const [index, setIndex] = useState(0);
   const count = slides.length;
+  const touchStartX = useRef<number | null>(null);
+  const touchMoveX = useRef<number | null>(null);
 
   const go = useCallback(
     (i: number) => {
@@ -47,6 +50,16 @@ export default function BannerCarousel({
     return () => clearInterval(id);
   }, [count, interval]);
 
+  // Keyboard navigation (left/right)
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') prev();
+      if (e.key === 'ArrowRight') next();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [prev, next]);
+
   const onSearch = (e?: React.FormEvent) => {
     e?.preventDefault();
     const p = new URLSearchParams();
@@ -60,8 +73,30 @@ export default function BannerCarousel({
 
   return (
     <div className="relative overflow-hidden rounded-2xl border bg-[hsl(var(--card))] shadow-soft">
-      {/* Slides (crossfade) */}
-      <div className="relative h-[360px] w-full sm:h-[420px] md:h-[520px]">
+      {/* Slides (crossfade) - responsive height using clamp to scale with viewport */}
+      <div
+        className="relative w-full"
+        style={{ height: 'clamp(280px, 38vw, 520px)' }}
+        onTouchStart={(e) => {
+          touchStartX.current = e.touches?.[0]?.clientX ?? null;
+          touchMoveX.current = null;
+        }}
+        onTouchMove={(e) => {
+          touchMoveX.current = e.touches?.[0]?.clientX ?? null;
+        }}
+        onTouchEnd={() => {
+          if (touchStartX.current == null || touchMoveX.current == null) return;
+          const delta = touchMoveX.current - touchStartX.current;
+          const threshold = 40; // px
+          if (delta > threshold) {
+            prev();
+          } else if (delta < -threshold) {
+            next();
+          }
+          touchStartX.current = null;
+          touchMoveX.current = null;
+        }}
+      >
         {slides.map((s, i) => {
           const isRemote = typeof s.src === 'string' && /^https?:\/\//i.test(s.src);
           return (
@@ -72,46 +107,35 @@ export default function BannerCarousel({
               }`}
               aria-hidden={i !== index}
             >
-              {isRemote ? (
-                // Remote URL: use <img> to avoid next.config domain setup
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={s.src as string}
-                  alt={(s.title as string) || `Slide ${i + 1}`}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                // Local public path "/..." or StaticImageData import
-                <Image
-                  src={s.src as StaticImageData | string}
-                  alt={(s.title as string) || `Slide ${i + 1}`}
-                  fill
-                  priority={i === 0}
-                  sizes="100vw"
-                  quality={85}
-                  className="object-cover"
-                />
-              )}
+              {/* Use ImageFade for both remote and local images to provide LQIP and fade-in */}
+              <ImageFade
+                src={s.src as StaticImageData | string}
+                alt={(s.title as string) || `Slide ${i + 1}`}
+                fill={!isRemote}
+                priority={i === 0}
+                sizes="100vw"
+                className="h-full w-full"
+              />
               {/* Dark gradient to ensure text contrast */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/10" />
             </div>
           );
         })}
 
-        {/* Overlay content with generous padding for visibility */}
-        <div className="absolute inset-0 z-10 flex items-end md:items-center">
-          <div className="w-full px-6 py-10 md:px-12 md:py-16">
-            <div className="max-w-3xl text-white">
+        {/* Overlay content with responsive padding for visibility */}
+          <div className="absolute inset-0 z-10 flex items-center md:items-center">
+            <div className="w-full px-3 py-6 sm:px-6 sm:py-10 md:px-12 md:py-16">
+            <div className="max-w-full md:max-w-3xl mx-auto text-white">
               {active?.title ? (
                 <div className="rounded-2xl border border-white/15 bg-black/35 p-4 sm:p-6 md:p-8 backdrop-blur">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs text-white/85">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-white/15  px-3 py-1 text-xs sm:text-sm font-semibold mt-4 text-white shadow-sm backdrop-blur">
                     Discover live moments
                   </div>
-                  <h1 className="mt-3 text-3xl font-extrabold leading-tight md:text-4xl">
+                  <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight md:text-5xl">
                     {active.title}
                   </h1>
                   {active.subtitle && (
-                    <p className="mt-2 max-w-xl text-white/85">{active.subtitle}</p>
+                    <p className="mt-2 max-w-xl text-white/95 text-sm sm:text-base">{active.subtitle}</p>
                   )}
 
                   {/* Search form */}
@@ -154,7 +178,7 @@ export default function BannerCarousel({
                         </option>
                       ))}
                     </select>
-                    <button type="submit" className="btn btn-primary sm:col-span-5">
+                    <button type="submit" className="btn btn-primary sm:col-span-5 btn-block">
                       Search events
                     </button>
                   </form>
@@ -164,18 +188,23 @@ export default function BannerCarousel({
           </div>
         </div>
 
-        {/* Controls */}
+        {/* ARIA live for screen readers */}
+        <div className="sr-only" aria-live="polite">
+          {`Slide ${index + 1} of ${count}${active?.title ? `: ${active.title}` : ''}`}
+        </div>
+
+        {/* Controls (hide on small screens to avoid overlap; swipe handles navigation) */}
         <button
           aria-label="Previous"
           onClick={prev}
-          className="absolute left-3 top-1/2 z-10 -translate-y-1/2 rounded-full border border-white/30 bg-black/30 p-2 text-white backdrop-blur hover:bg-black/50"
+          className="hidden md:inline-flex absolute left-3 top-1/2 z-10 -translate-y-1/2 rounded-full border border-white/30 bg-black/30 p-2 text-white backdrop-blur hover:bg-black/50"
         >
           <ChevronLeft size={18} />
         </button>
         <button
           aria-label="Next"
           onClick={next}
-          className="absolute right-3 top-1/2 z-10 -translate-y-1/2 rounded-full border border-white/30 bg-black/30 p-2 text-white backdrop-blur hover:bg-black/50"
+          className="hidden md:inline-flex absolute right-3 top-1/2 z-10 -translate-y-1/2 rounded-full border border-white/30 bg-black/30 p-2 text-white backdrop-blur hover:bg-black/50"
         >
           <ChevronRight size={18} />
         </button>
